@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
 
 <meta charset="UTF-8">
@@ -12,141 +13,125 @@
 <style>
 
 *{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-    font-family:Arial,sans-serif;
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Arial,sans-serif;
 }
 
 body{
 
-    background:#111;
-    color:white;
-
-    display:flex;
-    justify-content:center;
-    align-items:center;
-
-    min-height:100vh;
+background:#111;
+color:white;
+display:flex;
+justify-content:center;
+align-items:center;
+min-height:100vh;
 
 }
 
 .card{
 
-    width:400px;
-    max-width:95%;
-
-    background:#1d1d1d;
-
-    padding:30px;
-
-    border-radius:20px;
-
-    box-shadow:0 0 25px rgba(0,0,0,.45);
+width:420px;
+max-width:95%;
+background:#1d1d1d;
+padding:30px;
+border-radius:20px;
+box-shadow:0 0 30px rgba(0,0,0,.5);
 
 }
 
 h1{
 
-    text-align:center;
-    color:#D4AF37;
-    margin-bottom:10px;
+text-align:center;
+color:#D4AF37;
+margin-bottom:8px;
 
 }
 
 .subtitle{
 
-    text-align:center;
-    color:#aaa;
-    margin-bottom:25px;
+text-align:center;
+color:#999;
+margin-bottom:25px;
 
 }
 
 #reader{
 
-    width:100%;
-    margin-bottom:20px;
+width:100%;
+margin-top:20px;
+margin-bottom:20px;
 
 }
 
 input{
 
-    width:100%;
-    padding:15px;
-
-    border:none;
-    border-radius:10px;
-
-    margin-top:15px;
-
-    font-size:16px;
+width:100%;
+padding:15px;
+border:none;
+border-radius:10px;
+font-size:16px;
+margin-top:15px;
 
 }
 
 button{
 
-    width:100%;
-
-    padding:15px;
-
-    margin-top:15px;
-
-    border:none;
-
-    border-radius:10px;
-
-    font-size:17px;
-
-    font-weight:bold;
-
-    cursor:pointer;
+width:100%;
+padding:15px;
+margin-top:15px;
+border:none;
+border-radius:10px;
+font-size:17px;
+font-weight:bold;
+cursor:pointer;
 
 }
 
 .scan{
 
-    background:#333;
-    color:white;
+background:#333;
+color:white;
 
 }
 
 .verify{
 
-    background:#D4AF37;
-    color:black;
+background:#D4AF37;
+color:black;
 
 }
 
 .check{
 
-    background:#28a745;
-    color:white;
+background:#28a745;
+color:white;
 
 }
 
 #result{
 
-    margin-top:25px;
-
-    line-height:1.8;
+margin-top:25px;
 
 }
 
 .success{
 
-    color:#4cff7c;
+color:#64ff64;
 
 }
 
 .error{
 
-    color:#ff5757;
+color:#ff5f5f;
 
 }
 
 .info{
 
-    margin-top:15px;
+margin-top:12px;
+line-height:1.8;
 
 }
 
@@ -161,7 +146,9 @@ button{
 <h1>PANCHA PRAKRITI</h1>
 
 <p class="subtitle">
+
 Ticket Verification System
+
 </p>
 
 <button class="scan" onclick="startScanner()">
@@ -190,174 +177,207 @@ Verify Ticket
 
 <script>
 
-const API =
-"https://script.google.com/macros/s/AKfycbzPKf1QpAaJ56ePF9a8vnXlLUPyigQvlLjKEER1mpc9lJXDN7dX4Ajix_-v_U597N7q/exec";
+const API="https://script.google.com/macros/s/AKfycbzPKf1QpAaJ56ePF9a8vnXlLUPyigQvlLjKEER1mpc9lJXDN7dX4Ajix_-v_U597N7q/exec";
 
 let scanner=null;
 
 function startScanner(){
 
-    document.getElementById("reader").innerHTML="";
+if(scanner){
 
-    scanner = new Html5Qrcode("reader");
+scanner.stop().catch(()=>{});
 
-    scanner.start(
+}
 
-        {
-            facingMode:"environment"
-        },
+document.getElementById("reader").innerHTML="";
 
-        {
+scanner=new Html5Qrcode("reader");
 
-            fps:10,
+scanner.start(
 
-            qrbox:250
+{
 
-        },
+facingMode:"environment"
 
-        function(decodedText){
+},
 
-            scanner.stop();
+{
 
-            document
-            .getElementById("ticket")
-            .value=decodedText;
+fps:10,
+qrbox:250
 
-            verifyTicket();
+},
 
-        }
+(decodedText)=>{
 
-    ).catch(function(err){
+document.getElementById("ticket").value=decodedText;
 
-        alert("Unable to access camera.");
+scanner.stop();
 
-        console.log(err);
+verifyTicket();
 
-    });
+},
+
+(error)=>{}
+
+).catch(err=>{
+
+alert("Unable to access camera.");
+
+console.log(err);
+
+});
 
 }
 
 async function verifyTicket(){
 
-    const ticket =
-        document
-        .getElementById("ticket")
-        .value
-        .trim();
+const ticket=document.getElementById("ticket").value.trim();
 
-    if(ticket==="") return;
+if(ticket==""){
 
-    const response =
-        await fetch(
+alert("Please enter a Ticket ID.");
 
-            API+
+return;
 
-            "?action=verify&ticket="+
+}
 
-            encodeURIComponent(ticket)
+try{
 
-        );
+console.log("Checking Ticket:",ticket);
 
-    const data =
-        await response.json();
+const response=await fetch(
 
-    const result =
-        document
-        .getElementById("result");
+API+
+"?action=verify&ticket="+
+encodeURIComponent(ticket)
 
-    if(!data.success){
+);
 
-        result.innerHTML=
+const data=await response.json();
 
-        "<h2 class='error'>❌ Ticket Not Found</h2>";
+console.log(data);
 
-        return;
+const result=document.getElementById("result");
 
-    }
+if(!data.success){
 
-    const t=data.attendee;
+result.innerHTML=`
 
-    result.innerHTML=`
+<h2 class="error">
 
-        <h2 class="success">
+❌ Ticket Not Found
 
-        ✅ VALID TICKET
+</h2>
 
-        </h2>
+`;
 
-        <div class="info">
+return;
 
-        <b>Name</b><br>
+}
 
-        ${t.attendeeName}
+const t=data.attendee;
 
-        <br><br>
+result.innerHTML=`
 
-        <b>Pass</b><br>
+<h2 class="success">
 
-        ${t.passType}
+✅ VALID TICKET
 
-        <br><br>
+</h2>
 
-        <b>Ticket ID</b><br>
+<div class="info">
 
-        ${t.ticketID}
+<b>Name</b><br>
 
-        <br><br>
+${t.attendeeName}
 
-        <b>Status</b><br>
+<br><br>
 
-        ${t.status}
+<b>Pass Type</b><br>
 
-        </div>
+${t.passType}
 
-        <button
+<br><br>
 
-        class="check"
+<b>Ticket ID</b><br>
 
-        onclick="checkIn('${t.ticketID}')">
+${t.ticketID}
 
-        CHECK IN
+<br><br>
 
-        </button>
+<b>Status</b><br>
 
-    `;
+${t.status}
+
+<br><br>
+
+<b>Scan Count</b><br>
+
+${t.scanCount}
+
+</div>
+
+<button
+class="check"
+onclick="checkIn('${t.ticketID}')">
+
+CHECK IN
+
+</button>
+
+`;
+
+}catch(err){
+
+console.error(err);
+
+alert(err.message);
+
+}
 
 }
 
 async function checkIn(ticket){
 
-    const response =
-        await fetch(
+try{
 
-            API+
+const response=await fetch(
 
-            "?action=checkin&ticket="+
+API+
+"?action=checkin&ticket="+
+encodeURIComponent(ticket)
 
-            encodeURIComponent(ticket)
+);
 
-        );
+const data=await response.json();
 
-    const data =
-        await response.json();
+console.log(data);
 
-    if(data.success){
+if(data.success){
 
-        alert("✅ Checked In Successfully");
+alert("✅ Checked In Successfully");
 
-    }
+}else{
 
-    else{
+alert(data.message);
 
-        alert("❌ "+data.message);
+}
 
-    }
+verifyTicket();
 
-    verifyTicket();
+}catch(err){
+
+console.error(err);
+
+alert(err.message);
+
+}
 
 }
 
 </script>
 
 </body>
+
 </html>

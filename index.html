@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Pancha Prakriti Scanner</title>
+
+<script src="https://unpkg.com/html5-qrcode"></script>
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial,sans-serif;
+}
+
+body{
+
+    background:#111;
+    color:white;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    min-height:100vh;
+
+}
+
+.card{
+
+    width:400px;
+    max-width:95%;
+
+    background:#1d1d1d;
+
+    padding:30px;
+
+    border-radius:20px;
+
+    box-shadow:0 0 25px rgba(0,0,0,.45);
+
+}
+
+h1{
+
+    text-align:center;
+    color:#D4AF37;
+    margin-bottom:10px;
+
+}
+
+.subtitle{
+
+    text-align:center;
+    color:#aaa;
+    margin-bottom:25px;
+
+}
+
+#reader{
+
+    width:100%;
+    margin-bottom:20px;
+
+}
+
+input{
+
+    width:100%;
+    padding:15px;
+
+    border:none;
+    border-radius:10px;
+
+    margin-top:15px;
+
+    font-size:16px;
+
+}
+
+button{
+
+    width:100%;
+
+    padding:15px;
+
+    margin-top:15px;
+
+    border:none;
+
+    border-radius:10px;
+
+    font-size:17px;
+
+    font-weight:bold;
+
+    cursor:pointer;
+
+}
+
+.scan{
+
+    background:#333;
+    color:white;
+
+}
+
+.verify{
+
+    background:#D4AF37;
+    color:black;
+
+}
+
+.check{
+
+    background:#28a745;
+    color:white;
+
+}
+
+#result{
+
+    margin-top:25px;
+
+    line-height:1.8;
+
+}
+
+.success{
+
+    color:#4cff7c;
+
+}
+
+.error{
+
+    color:#ff5757;
+
+}
+
+.info{
+
+    margin-top:15px;
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="card">
+
+<h1>PANCHA PRAKRITI</h1>
+
+<p class="subtitle">
+Ticket Verification System
+</p>
+
+<button class="scan" onclick="startScanner()">
+
+📷 Scan QR Code
+
+</button>
+
+<div id="reader"></div>
+
+<input
+id="ticket"
+placeholder="Enter Ticket ID">
+
+<button
+class="verify"
+onclick="verifyTicket()">
+
+Verify Ticket
+
+</button>
+
+<div id="result"></div>
+
+</div>
+
+<script>
+
+const API =
+"YOUR_WEB_APP_URL";
+
+let scanner=null;
+
+function startScanner(){
+
+    document.getElementById("reader").innerHTML="";
+
+    scanner = new Html5Qrcode("reader");
+
+    scanner.start(
+
+        {
+            facingMode:"environment"
+        },
+
+        {
+
+            fps:10,
+
+            qrbox:250
+
+        },
+
+        function(decodedText){
+
+            scanner.stop();
+
+            document
+            .getElementById("ticket")
+            .value=decodedText;
+
+            verifyTicket();
+
+        }
+
+    ).catch(function(err){
+
+        alert("Unable to access camera.");
+
+        console.log(err);
+
+    });
+
+}
+
+async function verifyTicket(){
+
+    const ticket =
+        document
+        .getElementById("ticket")
+        .value
+        .trim();
+
+    if(ticket==="") return;
+
+    const response =
+        await fetch(
+
+            API+
+
+            "?action=verify&ticket="+
+
+            encodeURIComponent(ticket)
+
+        );
+
+    const data =
+        await response.json();
+
+    const result =
+        document
+        .getElementById("result");
+
+    if(!data.success){
+
+        result.innerHTML=
+
+        "<h2 class='error'>❌ Ticket Not Found</h2>";
+
+        return;
+
+    }
+
+    const t=data.attendee;
+
+    result.innerHTML=`
+
+        <h2 class="success">
+
+        ✅ VALID TICKET
+
+        </h2>
+
+        <div class="info">
+
+        <b>Name</b><br>
+
+        ${t.attendeeName}
+
+        <br><br>
+
+        <b>Pass</b><br>
+
+        ${t.passType}
+
+        <br><br>
+
+        <b>Ticket ID</b><br>
+
+        ${t.ticketID}
+
+        <br><br>
+
+        <b>Status</b><br>
+
+        ${t.status}
+
+        </div>
+
+        <button
+
+        class="check"
+
+        onclick="checkIn('${t.ticketID}')">
+
+        CHECK IN
+
+        </button>
+
+    `;
+
+}
+
+async function checkIn(ticket){
+
+    const response =
+        await fetch(
+
+            API+
+
+            "?action=checkin&ticket="+
+
+            encodeURIComponent(ticket)
+
+        );
+
+    const data =
+        await response.json();
+
+    if(data.success){
+
+        alert("✅ Checked In Successfully");
+
+    }
+
+    else{
+
+        alert("❌ "+data.message);
+
+    }
+
+    verifyTicket();
+
+}
+
+</script>
+
+</body>
+</html>
